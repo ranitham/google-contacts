@@ -3,6 +3,7 @@
 
 namespace App\Schedule;
 
+use App\GoogleUser;
 use App\PbxPhoneBookEntry;
 use Google_Client;
 use Google_Service_People;
@@ -17,8 +18,8 @@ class GoogleSync
             ->table('voicemail')
             ->join('users', 'voicemail.fkiduser', '=', 'users.iduser')
             ->join('extension', 'users.fkidextension', '=', 'extension.fkiddn')
-            ->join('dn', 'extension.fkiddn', '=', 'dn.fkiddn')
-            ->select('dn.iddn')
+            ->join('dn', 'extension.fkiddn', '=', 'dn.iddn')
+            ->select(['dn.iddn', 'dn.fkidtenant'])
             ->where('voicemail.email', 'ILIKE', strtolower($email))
             ->first();
     }
@@ -41,10 +42,12 @@ class GoogleSync
         $person = null;
 
         foreach ($people as $person) {
-            $dbPerson = PbxPhoneBookEntry::where('other', $person->getResourceName())->first();
+            $dbPerson = PbxPhoneBookEntry::where('pager', $person->getResourceName())->first();
             if ($dbPerson == null) {
                 $dbPerson = new PbxPhoneBookEntry();
             }
+
+            $dbPerson->pager = $person->getResourceName();
 
             $dbPerson->fkiddn = $fkiddn;
             $dbPerson->fkidtenant = $fkidtenant;
@@ -123,7 +126,7 @@ class GoogleSync
         $google_client_token = [
             'access_token' => $auth_user->token,
             'refresh_token' => $auth_user->refresh_token,
-            'expired_in' => $auth_user->expires_at->timestamp
+            'expires_in' => $auth_user->expires_at->timestamp
         ];
 
         // Match email to iddn
@@ -139,12 +142,13 @@ class GoogleSync
 
             $optParams = [
                 'requestMask.includeField' => 'person.phone_numbers,person.names,person.email_addresses,person.organizations',
-                'pageSize' => 2000
+                'pageSize' => 200
             ];
 
             // Check if we have a sync token, if so send through otherwise request one
             if ($auth_user->sync_token != null) {
                 $optParams['syncToken'] = $auth_user->sync_token;
+                $optParams['requestSyncToken'] = true;
             } else {
                 $optParams['requestSyncToken'] = true;
             }
@@ -161,10 +165,8 @@ class GoogleSync
                 $nextPage = $results->getNextPageToken();
             } while ($nextPage != null);
 
-            if ($st = $results->getNextSyncToken() !== null) {
-                $auth_user->sync_token = $st; //save
-                $auth_user->save();
-            }
+            $auth_user->sync_token = $results->getNextSyncToken(); //save
+            $auth_user->save();
         }
 
 
@@ -172,7 +174,7 @@ class GoogleSync
 
     public function __invoke()
     {
-        $auth_users = Google_Client::all();
+        $auth_users = GoogleUser::all();
 
         foreach ($auth_users as $auth_user) {
             $this->syncUser($auth_user);

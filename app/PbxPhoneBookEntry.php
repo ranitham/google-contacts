@@ -41,7 +41,10 @@ class PbxPhoneBookEntry extends Model
         'business' => 'pv_an3',
         'business2'=> 'pv_an4',
         'email' => 'pv_an5',
-        'other' => 'pv_an6'
+        'other' => 'pv_an6',
+        'business_fax' => 'pv_an7',
+        'home_fax' => 'pv_an8',
+        'pager' => 'pv_an9'
     ];
 
     protected $guard = [];

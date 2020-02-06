@@ -18,7 +18,7 @@ class CreateGoogleUsersTable extends Migration
             $table->string('token');
             $table->string('refresh_token');
             $table->string('email');
-            $table->string('sync_token'); //People API Sync Token for incremental sync
+            $table->string('sync_token')->nullable(); //People API Sync Token for incremental sync
             $table->dateTime('expires_at')->nullable();
             $table->timestamps();
         });

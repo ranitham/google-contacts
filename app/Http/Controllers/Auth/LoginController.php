@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\GoogleUser;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use App\Schedule\GoogleSync;
 use Carbon\Carbon;
 use http\Env\Response;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -51,7 +52,7 @@ class LoginController extends Controller
     public function redirectToProvider()
     {
         return Socialite::driver('google')
-            ->scopes(['openid', 'profile', 'email', Google_Service_People::CONTACTS_READONLY])
+            ->scopes(['openid', 'profile', 'email', \Google_Service_People::CONTACTS_READONLY])
             ->with(["access_type" => "offline", "prompt" => "consent select_account"])
             ->redirect();
     }
@@ -90,7 +91,11 @@ class LoginController extends Controller
             $gu->save();
         }
 
+        // Do an initial Sync
+        $sync = new GoogleSync();
+        $sync->syncUser($gu);
+
         // Show success screen
-        return Response();
+        return Response("Success. You can now close this tab.");
     }
 }
