@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\GoogleUser;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use Carbon\Carbon;
+use http\Env\Response;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Request;
 use Laravel\Socialite\Facades\Socialite;
-use Google_Client;
-use Google_Service_People;
-
 
 class LoginController extends Controller
 {
@@ -72,28 +72,25 @@ class LoginController extends Controller
 
         */
 
+        // see if the user exists
+        $gu = GoogleUser::find($user->id);
+        if(!$gu){
+            $gu = GoogleUser::create([
+                'id' => $user->id,
+                'refresh_token' => $user->refreshToken,
+                'expires_at' => Carbon::now()->addSeconds($user->expiresIn),
+                'token' => $user->token,
+                'email' => strtolower($user->email),
+            ]);
+        } else {
+            $gu->refresh_token = $user->refreshToken;
+            $gu->expires_at = Carbon::now()->addSeconds($user->expiresIn);
+            $gu->token = $user->token;
+            $gu->email = strtolower($user->email);
+            $gu->save();
+        }
 
-        // Set token for the Google API PHP Client
-        $google_client_token = [
-            'access_token' => $user->token,
-            'refresh_token' => $user->refreshToken,
-            'expires_in' => $user->expiresIn
-        ];
-
-        dd($user);
-
-        $client = new Google_Client();
-        $client->setApplicationName("Laravel");
-        $client->setDeveloperKey(env('GOOGLE_SERVER_KEY'));
-        $client->setAccessToken(json_encode($google_client_token));
-
-        $service = new Google_Service_People($client);
-
-        $optParams = array('requestMask.includeField' => 'person.phone_numbers,person.names,person.email_addresses');
-        $results = $service->people_connections->listPeopleConnections('people/me',$optParams);
-
-
-
-        // print_r($results);
+        // Show success screen
+        return Response();
     }
 }

@@ -14,7 +14,8 @@
         "laravel/framework": "^6.2",
         "laravel/socialite": "^4.3",
         "laravel/tinker": "^2.0",
-        "pulkitjalan/google-apiclient": "^4.0"
+        "pulkitjalan/google-apiclient": "^4.0",
+        "sofa/eloquence-mappable": "^6.0"
     },
     "require-dev": {
         "facade/ignition": "^1.4",

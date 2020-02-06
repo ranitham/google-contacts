@@ -103,6 +103,9 @@
       <path value="$PROJECT_DIR$/vendor/psr/simple-cache" />
       <path value="$PROJECT_DIR$/vendor/egulias/email-validator" />
       <path value="$PROJECT_DIR$/vendor/fideloper/proxy" />
+      <path value="$PROJECT_DIR$/vendor/sofa/hookable" />
+      <path value="$PROJECT_DIR$/vendor/sofa/eloquence-base" />
+      <path value="$PROJECT_DIR$/vendor/sofa/eloquence-mappable" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />
