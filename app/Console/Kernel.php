@@ -25,7 +25,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(new GoogleSync())->withoutOverlapping()->everyThirtyMinutes();
+        $schedule->call(new GoogleSync())
+            ->name('Sync Google Contacts')
+            ->withoutOverlapping()
+            ->everyThirtyMinutes();
     }
 
     /**
