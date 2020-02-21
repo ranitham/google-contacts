@@ -160,7 +160,17 @@ class GoogleSync
                     $optParams['pageToken'] = $nextPage;
                 }
 
-                $results = $service->people_connections->listPeopleConnections('people/me', $optParams);
+                try {
+                    $results = $service->people_connections->listPeopleConnections('people/me', $optParams);
+                } catch (\Google_Service_Exception $gse) {
+                    if($gse->getCode() === 400 && strpos(strtolower($gse->getMessage()), 'sync') !== false) {
+                        $optParams['syncToken'] = null;
+                        $results = $service->people_connections->listPeopleConnections('people/me', $optParams);
+                    } else {
+                        throw $gse;
+                    }
+                }
+
                 $this->insertConnections($results, $fkidtenant, $fkiddn);
                 $nextPage = $results->getNextPageToken();
             } while ($nextPage != null);
